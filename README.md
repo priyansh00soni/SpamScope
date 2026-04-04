@@ -3,7 +3,7 @@
 # ================================
 
 # -------- README.md --------
-cat << 'EOF' > README.md
+
 # 📧 Email Spam Detector
 
 A simple full-stack project that detects whether an email is **spam or legitimate (ham)** using machine learning + handcrafted features.
@@ -37,19 +37,19 @@ A simple full-stack project that detects whether an email is **spam or legitimat
 
 ## 🗂️ Structure
 
-project/
-├── app.py
-├── model/
-│   ├── trainer.py
-│   ├── predictor.py
-│   ├── features.py
-│   └── spam_model.pkl
-├── data/
-│   └── sample_data.py
-├── frontend/
-│   ├── index.html
-│   ├── app.js
-│   └── style.css
+      project/
+      ├── app.py
+      ├── model/
+      │   ├── trainer.py
+      │   ├── predictor.py
+      │   ├── features.py
+      │   └── spam_model.pkl
+      ├── data/
+      │   └── sample_data.py
+      ├── frontend/
+      │   ├── index.html
+      │   ├── app.js
+      │   └── style.css
 
 ---
 
