@@ -1,4 +1,3 @@
-// some ready-made emails so user can test quickly without typing
 const SAMPLES = [
   {
     label: "Spam — prize scam",
