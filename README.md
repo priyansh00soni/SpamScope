@@ -8,8 +8,6 @@
 
 A simple full-stack project that detects whether an email is **spam or legitimate (ham)** using machine learning + handcrafted features.
 
----
-
 ## 🚀 Features
 
 - Detect spam from subject + body
