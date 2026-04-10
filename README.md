@@ -2,7 +2,7 @@
 # 📧 EMAIL SPAM DETECTOR PROJECT
 # ================================
 
-# -------- README.md --------
+# ------- README.md --------
 
 # 📧 Email Spam Detector
 
