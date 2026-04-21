@@ -3,60 +3,122 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Spam Checker</title>
+  <title>SpamScope</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="container">
-    <div class="card">
-      <h1>Spam Checker</h1>
-      <p class="tagline">Paste an email below and check if it's spam.</p>
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-dot"></span>
+        SpamScope
+      </div>
+      <div class="header-pills">
+        <span class="pill">TF-IDF</span>
+        <span class="pill">Logistic Regression</span>
+        <span class="pill pill-green">~98.3% accuracy</span>
+      </div>
+    </div>
+  </header>
 
-      <div class="form">
-        <label for="subject">Subject</label>
-        <input type="text" id="subject" placeholder="e.g. You have won $1,000,000!!">
+  <main>
+    <section class="hero">
+      <h1 style="margin-top: -20px;">Is this email <span class="italic">spam?</span></h1>
+      <p>Paste a subject and body, we'll classify it instantly.</p>
+    </section>
 
-        <label for="body">Email body</label>
-        <textarea id="body" rows="7" placeholder="Paste the email content here..."></textarea>
+    <div class="grid">
+
+      <!-- INPUT -->
+      <div class="panel input-panel">
+        <div class="panel-label">Compose</div>
+
+        <div class="field">
+          <label for="subject">Subject line</label>
+          <input type="text" id="subject" placeholder="e.g. YOU WON ₹1,000,000!!!">
+        </div>
+
+        <div class="field">
+          <label for="body">Email body</label>
+          <textarea id="body" rows="8" placeholder="Paste the full email content here..."></textarea>
+        </div>
 
         <div class="actions">
-          <button id="btn-check">Check email</button>
-          <button id="btn-clear" class="secondary">Clear</button>
+          <button id="btn-check"><span id="btn-label">Analyze email</span></button>
+          <button id="btn-clear" class="btn-ghost">Clear</button>
         </div>
+
+        <div class="divider"></div>
+
+        <div class="samples-section">
+          <div class="samples-label">Quick samples</div>
+          <div id="sample-btns"></div>
+        </div>
+
+        <p id="api-notice" class="api-notice hidden">
+          ⚠ Backend offline, using local fallback model.
+        </p>
       </div>
 
-      <div id="result" class="result hidden"></div>
+      <!-- OUTPUT -->
+      <div class="output-col">
 
-      <div id="signals" class="signals hidden">
-        <p class="signals-title">Why it was flagged:</p>
-        <ul id="signals-list"></ul>
+        <!-- idle -->
+        <div id="idle-state" class="panel idle-panel">
+          <div class="idle-envelope">✉</div>
+          <div class="idle-text">Your result appears here</div>
+          <div class="idle-sub">Enter an email and click Analyze</div>
+        </div>
+
+        <!-- result (hidden initially) -->
+        <div id="result-state" class="hidden">
+
+          <div id="verdict-card" class="panel verdict-card">
+            <div class="verdict-eyebrow" id="verdict-eyebrow"></div>
+            <div class="verdict-headline" id="verdict-headline"></div>
+            <div class="verdict-desc" id="verdict-desc"></div>
+
+            <div class="conf-wrap">
+              <div class="conf-row">
+                <span class="conf-label">Confidence score</span>
+                <span class="conf-pct" id="conf-pct"></span>
+              </div>
+              <div class="conf-track">
+                <div class="conf-bar" id="conf-bar"></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="signals-card" class="panel signals-card hidden">
+            <div class="card-label">Why it was flagged</div>
+            <ul id="signals-list"></ul>
+          </div>
+
+        </div>
+
+        <!-- history -->
+        <div id="history-card" class="panel history-card hidden">
+          <div class="card-label">Recent checks</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Subject</th>
+                <th>Result</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+
       </div>
-
-      <div class="samples">
-        <p>Try a sample:</p>
-        <div id="sample-btns"></div>
-      </div>
-
-      <div id="history" class="history hidden">
-        <p>Recent checks</p>
-        <table id="history-table">
-          <thead>
-            <tr>
-              <th>Subject</th>
-              <th>Result</th>
-              <th>Confidence</th>
-            </tr>
-          </thead>
-          <tbody id="history-body"></tbody>
-        </table>
-      </div>
-
-      <p id="api-notice" class="api-notice hidden">
-        Note: backend not running at localhost:5000 — using fallback model.
-      </p>
     </div>
-  </div>
+  </main>
+
+  <footer>
+    <span>Built with Python · Flask · Scikit-learn · Vanilla JS</span>
+  </footer>
 
   <script src="app.js"></script>
 </body>
