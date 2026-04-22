@@ -33,6 +33,7 @@ const subjectEl    = document.getElementById("subject");
 const bodyEl       = document.getElementById("body");
 const btnCheck     = document.getElementById("btn-check");
 const btnLabel     = document.getElementById("btn-label");
+const btnSpinner   = document.getElementById("btn-spinner");
 const btnClear     = document.getElementById("btn-clear");
 const idleState    = document.getElementById("idle-state");
 const resultState  = document.getElementById("result-state");
@@ -48,22 +49,31 @@ const sampleBtns   = document.getElementById("sample-btns");
 const historyCard  = document.getElementById("history-card");
 const historyBody  = document.getElementById("history-body");
 const apiNotice    = document.getElementById("api-notice");
+const scanOverlay  = document.getElementById("scan-overlay");
 
 let checks = [];
 
 // build sample buttons
-SAMPLES.forEach(s => {
+SAMPLES.forEach((s, i) => {
   const btn = document.createElement("button");
   btn.textContent = s.label;
+  btn.style.animationDelay = `${0.4 + i * 0.07}s`;
+  btn.style.animation = 'fadeUp 0.5s cubic-bezier(0.16,1,0.3,1) both';
   btn.addEventListener("click", () => {
     subjectEl.value = s.subject;
     bodyEl.value    = s.body;
     clearResult();
+    // subtle flash on inputs
+    [subjectEl, bodyEl].forEach(el => {
+      el.style.transition = 'background 0.3s';
+      el.style.background = 'rgba(79,142,247,0.08)';
+      setTimeout(() => { el.style.background = ''; }, 400);
+    });
   });
   sampleBtns.appendChild(btn);
 });
 
-// fallback client-side model (used when backend is offline)
+// fallback client-side model
 function clientPredict(subject, body) {
   const text   = (subject + " " + body).toLowerCase();
   const hits   = SPAM_WORDS.filter(w => text.includes(w));
@@ -83,7 +93,7 @@ function clientPredict(subject, body) {
   if (caps > 0.35)      flags.push(`${Math.round(caps * 100)}% of letters are uppercase`);
   if (excl >= 3)        flags.push(`${excl} exclamation marks detected`);
   if (urls >= 2)        flags.push(`${urls} URLs found in body`);
-  if (hits.length >= 2) flags.push(`Spam keywords found: ${hits.slice(0, 4).join(", ")}`);
+  if (hits.length >= 2) flags.push(`Spam keywords: ${hits.slice(0, 4).join(", ")}`);
   if (/dear (customer|user|member)/i.test(text)) flags.push("Generic greeting — Dear Customer / User");
 
   return {
@@ -93,14 +103,33 @@ function clientPredict(subject, body) {
   };
 }
 
+// animated counter for percentage
+function animateCounter(el, target, duration = 800) {
+  const start = performance.now();
+  const from = 0;
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(from + (target - from) * ease) + "%";
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
 // render classification result
 function showResult(data) {
   const isSpam = data.verdict === "spam";
   const pct    = Math.round(data.confidence * 100);
 
-  // switch idle → result
-  idleState.classList.add("hidden");
-  resultState.classList.remove("hidden");
+  // switch idle → result with crossfade
+  idleState.style.opacity = '0';
+  idleState.style.transform = 'scale(0.97)';
+  setTimeout(() => {
+    idleState.classList.add("hidden");
+    idleState.style.opacity = '';
+    idleState.style.transform = '';
+    resultState.classList.remove("hidden");
+  }, 250);
 
   // verdict card
   verdictCard.className = "panel verdict-card " + (isSpam ? "is-spam" : "is-ham");
@@ -110,35 +139,25 @@ function showResult(data) {
     ? "This email contains suspicious patterns consistent with spam."
     : "This email appears to be a legitimate message.";
 
-  // confidence bar, reset then animate
-  confPct.textContent  = pct + "%";
+  // confidence bar + animated counter
+  confPct.textContent  = "0%";
   confBar.style.width  = "0%";
   requestAnimationFrame(() => requestAnimationFrame(() => {
     confBar.style.width = pct + "%";
+    animateCounter(confPct, pct);
   }));
-
-  // signals
-  signalsList.innerHTML = "";
-  if (data.triggered_features && data.triggered_features.length > 0) {
-    data.triggered_features.forEach(f => {
-      const li = document.createElement("li");
-      li.textContent = f;
-      signalsList.appendChild(li);
-    });
-    signalsCard.classList.remove("hidden");
-  } else {
-    signalsCard.classList.add("hidden");
-  }
 }
 
-// add row to history
+// add row to history with flash animation
 function addToHistory(subject, data) {
   checks.unshift({ subject: subject || "(no subject)", data });
   if (checks.length > 8) checks.pop();
 
   historyBody.innerHTML = "";
-  checks.forEach(c => {
+  checks.forEach((c, idx) => {
     const tr = document.createElement("tr");
+    tr.style.opacity = '0';
+    tr.style.animation = `fadeUp 0.3s ${idx * 0.05}s cubic-bezier(0.16,1,0.3,1) both`;
     tr.innerHTML = `
       <td title="${escHtml(c.subject)}">${escHtml(c.subject)}</td>
       <td><span class="tag ${c.data.verdict}">${c.data.verdict}</span></td>
@@ -160,10 +179,18 @@ function clearResult() {
 async function runCheck() {
   const subject = subjectEl.value.trim();
   const body    = bodyEl.value.trim();
-  if (!subject && !body) return;
+  if (!subject && !body) {
+    // shake the button
+    btnCheck.style.animation = 'shake 0.4s cubic-bezier(0.36,0.07,0.19,0.97)';
+    setTimeout(() => { btnCheck.style.animation = ''; }, 400);
+    return;
+  }
 
-  btnLabel.textContent = "Analyzing...";
+  // UI: loading state
+  btnLabel.textContent = "Analyzing";
+  btnSpinner.classList.remove("hidden");
   btnCheck.disabled    = true;
+  scanOverlay.classList.add("active");
   clearResult();
 
   let data;
@@ -177,13 +204,32 @@ async function runCheck() {
     data = await res.json();
   } catch {
     apiNotice.classList.remove("hidden");
+    // small artificial delay so the scan animation feels meaningful
+    await new Promise(r => setTimeout(r, 900));
     data = clientPredict(subject, body);
   }
 
+  // stop scan, show result
+  scanOverlay.classList.remove("active");
   showResult(data);
+
+  // staggered signals reveal
+  if (data.triggered_features && data.triggered_features.length > 0) {
+    signalsList.innerHTML = "";
+    data.triggered_features.forEach(f => {
+      const li = document.createElement("li");
+      li.textContent = f;
+      signalsList.appendChild(li);
+    });
+    signalsCard.classList.remove("hidden");
+  } else {
+    signalsCard.classList.add("hidden");
+  }
+
   addToHistory(subject, data);
 
   btnLabel.textContent = "Analyze email";
+  btnSpinner.classList.add("hidden");
   btnCheck.disabled    = false;
 }
 

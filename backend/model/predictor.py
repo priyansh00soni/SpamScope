@@ -37,7 +37,7 @@ def predict(subject: str, body: str) -> dict:
     tfidf_vec = bundle["tfidf"].transform([text])
 
 
-    # ---------------- HANDCRAFTED FEATURES ----------------
+    # ---------------- FEATURES ----------------
     # manually computed features (numbers like caps %, links, etc.)
     hand_vec = np.array([feature_vector(subject, body)])
 

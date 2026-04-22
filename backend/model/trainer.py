@@ -69,7 +69,7 @@ def train(emails=None, save=True):
 
 
     # ---------------- HANDCRAFTED FEATURES ----------------
-    # normalize values between 0–1 (ML models prefer this)
+    # normalize values between 0–1 
     scaler = MinMaxScaler()
 
     hand_tr = csr_matrix(scaler.fit_transform(hand[tr_idx]))

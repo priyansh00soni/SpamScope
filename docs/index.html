@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SpamScope</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Shake keyframe (used inline via JS) */
+    @keyframes shake {
+      10%, 90%  { transform: translateX(-2px); }
+      20%, 80%  { transform: translateX(4px); }
+      30%, 50%, 70% { transform: translateX(-4px); }
+      40%, 60%  { transform: translateX(4px); }
+    }
+    /* Ensure idle crossfade works */
+    #idle-state {
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+  </style>
 </head>
 <body>
 
@@ -24,14 +37,18 @@
 
   <main>
     <section class="hero">
-      <h1 style="margin-top: -20px;">Is this email <span class="italic">spam?</span></h1>
-      <p>Paste a subject and body, we'll classify it instantly.</p>
+      <div class="hero-tag">Email Intelligence</div>
+      <h1>Is this email <span class="italic">spam?</span></h1>
+      <p>// paste a subject and body — classified instantly</p>
     </section>
 
     <div class="grid">
 
       <!-- INPUT -->
       <div class="panel input-panel">
+        <!-- Scanning overlay -->
+        <div id="scan-overlay" class="scanning-overlay"></div>
+
         <div class="panel-label">Compose</div>
 
         <div class="field">
@@ -45,7 +62,10 @@
         </div>
 
         <div class="actions">
-          <button id="btn-check"><span id="btn-label">Analyze email</span></button>
+          <button id="btn-check">
+            <div id="btn-spinner" class="spinner hidden"></div>
+            <span id="btn-label">Analyze email</span>
+          </button>
           <button id="btn-clear" class="btn-ghost">Clear</button>
         </div>
 
@@ -57,7 +77,7 @@
         </div>
 
         <p id="api-notice" class="api-notice hidden">
-          ⚠ Backend offline, using local fallback model.
+          ⚠ Backend offline — using local fallback model.
         </p>
       </div>
 
@@ -66,9 +86,9 @@
 
         <!-- idle -->
         <div id="idle-state" class="panel idle-panel">
-          <div class="idle-envelope">✉</div>
+          <span class="idle-envelope">✉</span>
           <div class="idle-text">Your result appears here</div>
-          <div class="idle-sub">Enter an email and click Analyze</div>
+          <div class="idle-sub">// enter an email and click Analyze</div>
         </div>
 
         <!-- result (hidden initially) -->
